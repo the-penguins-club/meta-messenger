@@ -1,0 +1,15 @@
+Local Messenger is licensed under GNU AGPL version 3 or later.
+
+The Go engine depends on mautrix-meta (AGPL-3.0-or-later):
+https://github.com/mautrix/meta
+Pinned commit: a7ee921f93452a9e9e296e270dd910ffc46edc32
+Copyright (C) 2024-2026 Tulir Asokan and contributors.
+
+The encrypted message wrapping, device setup, and reaction-key handling in
+engine/internal/engine/client.go and events.go are based on the corresponding
+mautrix-meta implementation. They are distributed under AGPL-3.0-or-later.
+
+Other dependencies retain their respective licenses. See engine/go.mod,
+engine/go.sum, and package-lock.json for the exact dependency versions.
+
+This project is an independent, unofficial client and is not affiliated with Meta.

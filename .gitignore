@@ -1,0 +1,9 @@
+facebook.har
+*.har
+node_modules/
+dist/
+bin/
+.messenger/
+.config/
+*.cookies.json
+coverage/

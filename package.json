@@ -1,0 +1,47 @@
+{
+  "name": "@local-messenger/client",
+  "version": "0.1.0",
+  "description": "Local Messenger CLI and TypeScript API backed by mautrix-meta",
+  "license": "AGPL-3.0-or-later",
+  "type": "module",
+  "engines": {
+    "node": ">=18.17"
+  },
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": "./dist/index.js"
+  },
+  "bin": {
+    "messenger": "./dist/cli.js"
+  },
+  "files": [
+    "dist",
+    "bin",
+    "engine",
+    "scripts",
+    "src",
+    "test",
+    "tsconfig.json",
+    "README.md",
+    "LICENSE",
+    "NOTICE"
+  ],
+  "scripts": {
+    "build": "npm run build:engine && npm run build:ts",
+    "build:engine": "node scripts/build-engine.mjs",
+    "build:ts": "tsc",
+    "start": "node dist/cli.js",
+    "test": "npm run build && node --test test/*.test.mjs",
+    "test:engine": "cd engine && go test -race ./...",
+    "check": "tsc --noEmit && npm run test:engine",
+    "prepack": "npm run build"
+  },
+  "devDependencies": {
+    "@types/node": "18.19.130",
+    "typescript": "5.9.3"
+  },
+  "dependencies": {
+    "string-width": "7.2.0"
+  }
+}
