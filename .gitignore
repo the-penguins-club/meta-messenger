@@ -7,3 +7,11 @@ bin/
 .config/
 *.cookies.json
 coverage/
+android/.gradle/
+android/.kotlin/
+android/**/build/
+android/local.properties
+android/app/libs/*.aar
+android/app/libs/*-sources.jar
+*.jks
+*.keystore

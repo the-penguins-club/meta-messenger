@@ -6,6 +6,7 @@ import { MessengerClient, MessengerError, type MessengerEvent } from './index.js
 import { parseCookies } from './cookies.js';
 import { safeText } from './terminal.js';
 import { runTui } from './tui.js';
+import { RemoteMessengerClient } from './remote.js';
 
 const help = `messenger — local Messenger CLI
 
@@ -26,6 +27,8 @@ Options:
   --offline         Read the cache without contacting Facebook
   --json            Machine-readable output
   --limit N         Messages to show (1–500; default 50)
+  --server URL      Optional self-hosted engine (HTTPS, or loopback HTTP)
+  --token-file FILE Bearer token for --server (never put the token in arguments)
   --help            Show this help
 
 Vim keys: j/k move · h/l panes · gg/G first/last · / search threads
@@ -41,12 +44,15 @@ async function main(): Promise<void> {
     'data-dir': { type: 'string' }, cookies: { type: 'string' },
     json: { type: 'boolean', default: false }, offline: { type: 'boolean', default: false },
     limit: { type: 'string', default: '50' }, help: { type: 'boolean', short: 'h' },
+    server: { type: 'string' }, 'token-file': { type: 'string' },
   } });
   if (values.help) { process.stdout.write(help); return; }
   const [command = 'tui', ...args] = positionals;
   const counts: Record<string, number> = { tui: 0, login: 0, status: 0, conversations: 0, messages: 1, send: 2, react: 3, unreact: 2, watch: 0 };
   if (!(command in counts) || args.length !== counts[command]) throw new Error('Invalid command or arguments. Run messenger --help.');
   if (values.cookies && command !== 'login') throw new Error('--cookies is only valid with login.');
+  if (Boolean(values.server) !== Boolean(values['token-file'])) throw new Error('--server and --token-file must be used together.');
+  if (values.server && (values['data-dir'] || values.offline)) throw new Error('--data-dir and --offline apply to the local engine.');
   if (command === 'login' && !values.cookies) throw new Error('Use messenger login --cookies FILE.');
   if (values.offline && ['send', 'react', 'unreact', 'watch'].includes(command)) throw new Error(`${command} requires a connection; remove --offline.`);
   const limit = Number(values.limit);
@@ -55,7 +61,9 @@ async function main(): Promise<void> {
 
   // Parse credentials before spawning an engine or creating a profile.
   const cookies = command === 'login' ? parseCookies(values.cookies === '-' ? readFileSync(0, 'utf8') : await readFile(values.cookies!, 'utf8')) : undefined;
-  const client = await MessengerClient.open({ dataDir: values['data-dir'] });
+  const client = values.server
+    ? await RemoteMessengerClient.open({ url: values.server, token: (await readFile(values['token-file']!, 'utf8')).trim() })
+    : await MessengerClient.open({ dataDir: values['data-dir'] });
   const shutdown = () => { void client.close(); };
   process.once('SIGTERM', shutdown);
   const output = (value: unknown): void => {
@@ -72,7 +80,7 @@ async function main(): Promise<void> {
     if (command === 'login') {
       await client.importSession(cookies!);
       if (values.json) output({ imported: true });
-      else process.stdout.write('Session imported locally. Run messenger conversations to connect and register the encrypted device.\n');
+      else process.stdout.write(`Session imported ${values.server ? 'on your server' : 'locally'}. Run messenger conversations to connect and register the encrypted device.\n`);
       return;
     }
     if (command === 'status') { output(await client.status()); return; }

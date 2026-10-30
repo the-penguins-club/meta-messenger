@@ -4,7 +4,9 @@ A directly installed Messenger CLI and TypeScript API, backed by a local Go
 engine using [mautrix-meta](https://github.com/mautrix/meta). No Matrix server,
 hosted account, or separately managed service is required. The TypeScript
 package starts and stops the engine as a subprocess; IPC is newline-delimited
-JSON over stdin/stdout. Mobile apps and an optional hosted service are future work.
+JSON over stdin/stdout. A [native Android app](android/README.md) embeds the same
+engine, and an [optional self-hosted service](SERVICE.md) lets multiple clients
+share a persistent connection.
 
 This is an initial implementation. Local build, IPC, storage, and terminal behavior
 are tested. Browser-session login, conversation listing, encrypted transport
@@ -124,9 +126,8 @@ try {
 }
 ```
 
-The TypeScript API currently targets Node.js. A future native/mobile binding can
-reuse the engine protocol and domain types, but cannot directly reuse Node's
-subprocess implementation. `MESSENGER_ENGINE_PATH` or the `enginePath` option can
+The TypeScript API targets Node.js; Android uses a native Go/JNI binding to the same
+engine protocol. `MESSENGER_ENGINE_PATH` or the `enginePath` option can
 select a separately built engine binary.
 
 ## Current limits and validation
@@ -134,7 +135,7 @@ select a separately built engine binary.
 - Implemented: session import, recent conversation metadata, cached messages,
   live encrypted/plaintext text, reactions, local persistence, Vim-style navigation.
 - Encrypted backups/PIN-based history restoration, attachments, edits, calls,
-  read receipts, notifications, mobile packaging, and self-hosted mode are not
+  read receipts, notifications, and iOS packaging are not
   implemented yet. Unsupported incoming content appears as a placeholder.
 - Network reconnects use the upstream clients. Session expiry, permanent device
   rejection, and some protocol failures require browser login/CLI restart; there

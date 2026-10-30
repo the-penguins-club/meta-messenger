@@ -10,7 +10,8 @@
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
   "exports": {
-    ".": "./dist/index.js"
+    ".": "./dist/index.js",
+    "./remote": "./dist/remote.js"
   },
   "bin": {
     "messenger": "./dist/cli.js"
@@ -24,15 +25,18 @@
     "test",
     "tsconfig.json",
     "README.md",
+    "SERVICE.md",
     "LICENSE",
     "NOTICE"
   ],
   "scripts": {
     "build": "npm run build:engine && npm run build:ts",
     "build:engine": "node scripts/build-engine.mjs",
+    "build:service": "cd engine && go build -trimpath -o ../bin/messenger-service ./cmd/messenger-service",
+    "build:android-engine": "bash scripts/build-android-engine.sh",
     "build:ts": "tsc",
     "start": "node dist/cli.js",
-    "test": "npm run build && node --test test/*.test.mjs",
+    "test": "npm run build && npm run build:service && node --test test/*.test.mjs",
     "test:engine": "cd engine && go test -race ./...",
     "check": "tsc --noEmit && npm run test:engine",
     "prepack": "npm run build"

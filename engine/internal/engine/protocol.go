@@ -26,15 +26,26 @@ type Request struct {
 }
 
 type Wire struct {
-	mu  sync.Mutex
-	out io.Writer
+	mu   sync.Mutex
+	out  io.Writer
+	emit func(string)
 }
 
 func (w *Wire) send(value any) {
+	data, err := json.Marshal(value)
+	if err != nil {
+		return
+	}
 	w.mu.Lock()
-	defer w.mu.Unlock()
 	// A closed stdout means the parent exited; the stdin loop will terminate.
-	_ = json.NewEncoder(w.out).Encode(value)
+	if w.out != nil {
+		_, _ = w.out.Write(append(data, '\n'))
+	}
+	w.mu.Unlock()
+	// Native callbacks may schedule another request. Never invoke them under the wire lock.
+	if w.emit != nil {
+		w.emit(string(data))
+	}
 }
 func (w *Wire) event(kind string, data any) { w.send(map[string]any{"event": kind, "data": data}) }
 

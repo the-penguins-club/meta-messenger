@@ -23,6 +23,7 @@ export interface Reaction {
   status?: 'submitted';
 }
 export type MessengerEvent =
+  | { event: 'resync'; data: Record<string, never> }
   | { event: 'message'; data: Message }
   | { event: 'reaction'; data: Reaction }
   | { event: 'connection'; data: { transport: 'main' | 'encrypted'; state: string } }
@@ -41,6 +42,18 @@ export interface ClientOptions {
   requestTimeoutMs?: number;
 }
 
+export interface MessengerApi {
+  onEvent(listener: (event: MessengerEvent) => void): () => void;
+  importSession(cookies: Record<string, string>): Promise<{ imported: boolean }>;
+  status(): Promise<Status>;
+  connect(): Promise<Status>;
+  conversations(): Promise<Conversation[]>;
+  messages(conversationId: string, limit?: number): Promise<Message[]>;
+  send(conversationId: string, text: string): Promise<Message>;
+  react(conversationId: string, messageId: string, emoji: string): Promise<Reaction>;
+  close(): Promise<void>;
+}
+
 export function defaultDataDir(): string {
   const base = process.platform === 'win32'
     ? process.env.LOCALAPPDATA ?? path.join(os.homedir(), 'AppData', 'Local')
@@ -53,7 +66,7 @@ export function defaultDataDir(): string {
 interface Pending { resolve: (value: unknown) => void; reject: (reason: Error) => void; timer: NodeJS.Timeout }
 
 /** One local engine process per client/profile. No TCP listener or Matrix server. */
-export class MessengerClient {
+export class MessengerClient implements MessengerApi {
   private readonly child: ChildProcessWithoutNullStreams;
   private readonly lines: Interface;
   private readonly events = new EventEmitter();

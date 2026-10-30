@@ -1,9 +1,9 @@
 import { emitKeypressEvents, type Key } from 'node:readline';
-import { MessengerClient, type MessengerEvent, type Status } from './index.js';
+import { type MessengerApi, type MessengerEvent, type Status } from './index.js';
 import { TuiModel, type Effect } from './tui-model.js';
 import { clip, paneRow, safeText } from './terminal.js';
 
-export async function runTui(client: MessengerClient, offline = false): Promise<void> {
+export async function runTui(client: MessengerApi, offline = false): Promise<void> {
   const model = new TuiModel();
   const input = process.stdin, output = process.stdout;
   let stopped = false;
